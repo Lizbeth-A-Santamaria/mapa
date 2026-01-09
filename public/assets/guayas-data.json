@@ -1,0 +1,195 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Guayaquil",
+        "admin_level": "6"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [-79.87, -2.19],
+            [-79.84, -2.19],
+            [-79.84, -2.23],
+            [-79.87, -2.23],
+            [-79.87, -2.19]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Durán",
+        "admin_level": "6"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [-79.81, -2.16],
+            [-79.78, -2.16],
+            [-79.78, -2.20],
+            [-79.81, -2.20],
+            [-79.81, -2.16]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Samborondón",
+        "admin_level": "6"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [-79.73, -2.18],
+            [-79.70, -2.18],
+            [-79.70, -2.22],
+            [-79.73, -2.22],
+            [-79.73, -2.18]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Salinas",
+        "admin_level": "6"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [-80.96, -2.21],
+            [-80.93, -2.21],
+            [-80.93, -2.25],
+            [-80.96, -2.25],
+            [-80.96, -2.21]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "La Libertad",
+        "admin_level": "6"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [-80.97, -2.23],
+            [-80.94, -2.23],
+            [-80.94, -2.27],
+            [-80.97, -2.27],
+            [-80.97, -2.23]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Daule",
+        "admin_level": "6"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [-79.98, -1.90],
+            [-79.90, -1.90],
+            [-79.90, -2.10],
+            [-79.98, -2.10],
+            [-79.98, -1.90]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Babahoyo",
+        "admin_level": "6"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [-79.52, -1.80],
+            [-79.42, -1.80],
+            [-79.42, -1.95],
+            [-79.52, -1.95],
+            [-79.52, -1.80]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Ventanas",
+        "admin_level": "6"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [-79.35, -1.62],
+            [-79.25, -1.62],
+            [-79.25, -1.77],
+            [-79.35, -1.77],
+            [-79.35, -1.62]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Playas",
+        "admin_level": "6"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [-79.98, -2.63],
+            [-79.88, -2.63],
+            [-79.88, -2.73],
+            [-79.98, -2.73],
+            [-79.98, -2.63]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Santa Lucía",
+        "admin_level": "6"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [-80.50, -2.30],
+            [-80.40, -2.30],
+            [-80.40, -2.45],
+            [-80.50, -2.45],
+            [-80.50, -2.30]
+          ]
+        ]
+      }
+    }
+  ]
+}

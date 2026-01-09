@@ -2,7 +2,7 @@ import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClientModule } from '@angular/common/http';
 import * as L from 'leaflet';
-import { OverpassService } from '../../services/overpass.service';
+import { OverpassServiceLocal } from '../../services/overpass_local.service';
 
 @Component({
   selector: 'app-map',
@@ -12,37 +12,35 @@ import { OverpassService } from '../../services/overpass.service';
     <div class="map-container">
       <div class="sidebar">
         <h2>🗺️ Cantones de Guayas</h2>
-        
+
         <div class="loading" *ngIf="isLoading()">
           <div class="spinner"></div>
           <p>{{ loadingMessage() }}</p>
         </div>
-        
+
         <div class="error" *ngIf="error()">{{ error() }}</div>
-        
+
         <div class="canton-list" *ngIf="!isLoading()">
-          <button 
+          <button
             *ngFor="let canton of cantones()"
             [class.active]="selectedCanton() === canton"
             [class.disabled]="!cantonesValidos().has(canton)"
             [disabled]="!cantonesValidos().has(canton)"
             (click)="selectCantonByName(canton)"
             class="canton-button"
-            [title]="!cantonesValidos().has(canton) ? 'Sin datos de área disponibles en la API' : ''"
+            [title]="
+              !cantonesValidos().has(canton) ? 'Sin datos de área disponibles en la API' : ''
+            "
           >
             {{ canton }}
             <span *ngIf="!cantonesValidos().has(canton)" class="invalid-badge">⚠️</span>
           </button>
         </div>
-        
-        <button 
-          *ngIf="selectedCanton() && !isLoading()"
-          (click)="resetMap()"
-          class="reset-button"
-        >
+
+        <button *ngIf="selectedCanton() && !isLoading()" (click)="resetMap()" class="reset-button">
           🔄 Ver Guayas completo
         </button>
-        
+
         <div class="info" *ngIf="!isLoading() && !selectedCanton()">
           <p>👆 Selecciona un cantón para enfocarte en él</p>
         </div>
@@ -50,171 +48,177 @@ import { OverpassService } from '../../services/overpass.service';
       <div id="map"></div>
     </div>
   `,
-  styles: [`
-    .map-container {
-      display: flex;
-      height: 100vh;
-      width: 100%;
-    }
+  styles: [
+    `
+      .map-container {
+        display: flex;
+        height: 100vh;
+        width: 100%;
+      }
 
-    .sidebar {
-      width: 300px;
-      background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
-      border-right: 1px solid #0f3460;
-      padding: 20px;
-      overflow-y: auto;
-      box-shadow: 2px 0 10px rgba(0,0,0,0.3);
-      z-index: 1000;
-    }
+      .sidebar {
+        width: 300px;
+        background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+        border-right: 1px solid #0f3460;
+        padding: 20px;
+        overflow-y: auto;
+        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
+        z-index: 1000;
+      }
 
-    .sidebar h2 {
-      margin-top: 0;
-      font-size: 20px;
-      color: #e94560;
-      margin-bottom: 20px;
-      text-align: center;
-      border-bottom: 2px solid #0f3460;
-      padding-bottom: 15px;
-    }
+      .sidebar h2 {
+        margin-top: 0;
+        font-size: 20px;
+        color: #e94560;
+        margin-bottom: 20px;
+        text-align: center;
+        border-bottom: 2px solid #0f3460;
+        padding-bottom: 15px;
+      }
 
-    .loading {
-      padding: 30px;
-      text-align: center;
-      color: #fff;
-    }
+      .loading {
+        padding: 30px;
+        text-align: center;
+        color: #fff;
+      }
 
-    .spinner {
-      width: 40px;
-      height: 40px;
-      border: 4px solid #0f3460;
-      border-top: 4px solid #e94560;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-      margin: 0 auto 15px;
-    }
+      .spinner {
+        width: 40px;
+        height: 40px;
+        border: 4px solid #0f3460;
+        border-top: 4px solid #e94560;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 15px;
+      }
 
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
 
-    .error {
-      padding: 15px;
-      background-color: rgba(233, 69, 96, 0.2);
-      border-left: 4px solid #e94560;
-      color: #ff6b8a;
-      margin-bottom: 15px;
-      border-radius: 4px;
-      font-size: 14px;
-    }
+      .error {
+        padding: 15px;
+        background-color: rgba(233, 69, 96, 0.2);
+        border-left: 4px solid #e94560;
+        color: #ff6b8a;
+        margin-bottom: 15px;
+        border-radius: 4px;
+        font-size: 14px;
+      }
 
-    .canton-list {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      max-height: calc(100vh - 250px);
-      overflow-y: auto;
-      padding-right: 5px;
-    }
+      .canton-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        max-height: calc(100vh - 250px);
+        overflow-y: auto;
+        padding-right: 5px;
+      }
 
-    .canton-button {
-      padding: 12px 15px;
-      border: 2px solid #0f3460;
-      background-color: rgba(15, 52, 96, 0.5);
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 14px;
-      text-align: left;
-      transition: all 0.3s ease;
-      font-weight: 500;
-      color: #fff;
-    }
+      .canton-button {
+        padding: 12px 15px;
+        border: 2px solid #0f3460;
+        background-color: rgba(15, 52, 96, 0.5);
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 14px;
+        text-align: left;
+        transition: all 0.3s ease;
+        font-weight: 500;
+        color: #fff;
+      }
 
-    .canton-button:hover {
-      background-color: rgba(233, 69, 96, 0.3);
-      border-color: #e94560;
-      transform: translateX(5px);
-    }
+      .canton-button:hover {
+        background-color: rgba(233, 69, 96, 0.3);
+        border-color: #e94560;
+        transform: translateX(5px);
+      }
 
-    .canton-button.active {
-      background: linear-gradient(135deg, #e94560 0%, #0f3460 100%);
-      color: white;
-      border-color: #e94560;
-      font-weight: bold;
-      box-shadow: 0 4px 15px rgba(233, 69, 96, 0.4);
-      transform: translateX(5px);
-    }
+      .canton-button.active {
+        background: linear-gradient(135deg, #e94560 0%, #0f3460 100%);
+        color: white;
+        border-color: #e94560;
+        font-weight: bold;
+        box-shadow: 0 4px 15px rgba(233, 69, 96, 0.4);
+        transform: translateX(5px);
+      }
 
-    .canton-button.disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-      background-color: rgba(15, 52, 96, 0.3);
-      border-color: #ff6b6b;
-    }
+      .canton-button.disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        background-color: rgba(15, 52, 96, 0.3);
+        border-color: #ff6b6b;
+      }
 
-    .canton-button.disabled:hover {
-      background-color: rgba(15, 52, 96, 0.3);
-      border-color: #ff6b6b;
-      transform: none;
-    }
+      .canton-button.disabled:hover {
+        background-color: rgba(15, 52, 96, 0.3);
+        border-color: #ff6b6b;
+        transform: none;
+      }
 
-    .invalid-badge {
-      float: right;
-      font-size: 12px;
-      margin-top: 2px;
-    }
+      .invalid-badge {
+        float: right;
+        font-size: 12px;
+        margin-top: 2px;
+      }
 
-    .reset-button {
-      width: 100%;
-      padding: 14px;
-      margin-top: 20px;
-      background: linear-gradient(135deg, #e94560 0%, #b83b5e 100%);
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 15px;
-      font-weight: bold;
-      transition: all 0.3s ease;
-    }
+      .reset-button {
+        width: 100%;
+        padding: 14px;
+        margin-top: 20px;
+        background: linear-gradient(135deg, #e94560 0%, #b83b5e 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 15px;
+        font-weight: bold;
+        transition: all 0.3s ease;
+      }
 
-    .reset-button:hover {
-      background: linear-gradient(135deg, #ff6b8a 0%, #e94560 100%);
-      box-shadow: 0 4px 15px rgba(233, 69, 96, 0.5);
-    }
+      .reset-button:hover {
+        background: linear-gradient(135deg, #ff6b8a 0%, #e94560 100%);
+        box-shadow: 0 4px 15px rgba(233, 69, 96, 0.5);
+      }
 
-    .info {
-      margin-top: 20px;
-      padding: 15px;
-      background-color: rgba(15, 52, 96, 0.5);
-      border-radius: 8px;
-      color: #aaa;
-      font-size: 13px;
-      text-align: center;
-    }
+      .info {
+        margin-top: 20px;
+        padding: 15px;
+        background-color: rgba(15, 52, 96, 0.5);
+        border-radius: 8px;
+        color: #aaa;
+        font-size: 13px;
+        text-align: center;
+      }
 
-    #map {
-      flex: 1;
-      z-index: 1;
-    }
+      #map {
+        flex: 1;
+        z-index: 1;
+      }
 
-    ::-webkit-scrollbar {
-      width: 6px;
-    }
+      ::-webkit-scrollbar {
+        width: 6px;
+      }
 
-    ::-webkit-scrollbar-track {
-      background: #1a1a2e;
-    }
+      ::-webkit-scrollbar-track {
+        background: #1a1a2e;
+      }
 
-    ::-webkit-scrollbar-thumb {
-      background: #e94560;
-      border-radius: 3px;
-    }
+      ::-webkit-scrollbar-thumb {
+        background: #e94560;
+        border-radius: 3px;
+      }
 
-    ::-webkit-scrollbar-thumb:hover {
-      background: #ff6b8a;
-    }
-  `]
+      ::-webkit-scrollbar-thumb:hover {
+        background: #ff6b8a;
+      }
+    `,
+  ],
 })
 export class MapComponent implements OnInit {
   cantones = signal<string[]>([]);
@@ -234,7 +238,7 @@ export class MapComponent implements OnInit {
   private guayasGeoJson: any = null;
   private allCantonesGeoJson: any = null;
 
-  constructor(private overpassService: OverpassService) {}
+  constructor(private overpassService: OverpassServiceLocal) {}
 
   async ngOnInit(): Promise<void> {
     try {
@@ -255,12 +259,12 @@ export class MapComponent implements OnInit {
       center: guayasCenter,
       zoom: 9,
       minZoom: 6,
-      maxZoom: 18
+      maxZoom: 18,
     });
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© OpenStreetMap contributors',
-      maxZoom: 19
+      maxZoom: 19,
     }).addTo(this.map);
 
     console.log('✓ Mapa OpenStreetMap cargado');
@@ -299,7 +303,10 @@ export class MapComponent implements OnInit {
       console.log('📥 Obteniendo todos los cantones...');
       this.allCantonesGeoJson = await this.overpassService.getGuayasCantones();
 
-      console.log('📊 Cantones GeoJSON features ANTES DE FILTRAR:', this.allCantonesGeoJson?.features?.length || 0);
+      console.log(
+        '📊 Cantones GeoJSON features ANTES DE FILTRAR:',
+        this.allCantonesGeoJson?.features?.length || 0
+      );
 
       const setCantonesValidos = new Set<string>();
       const nombresReales: string[] = [];
@@ -310,15 +317,17 @@ export class MapComponent implements OnInit {
           const tipo = feature.geometry?.type;
           const esValido = tipo === 'Polygon' || tipo === 'MultiPolygon';
           const name = feature.properties?.name || 'Sin nombre';
-          
+
           if (esValido) {
             setCantonesValidos.add(name);
             nombresReales.push(name);
             console.log(`  ✓ ${name}: geometría type=${tipo}`);
           } else {
-            console.warn(`  ⚠️ IGNORANDO ${name}: es ${tipo} (necesita ser Polygon o MultiPolygon)`);
+            console.warn(
+              `  ⚠️ IGNORANDO ${name}: es ${tipo} (necesita ser Polygon o MultiPolygon)`
+            );
           }
-          
+
           return esValido;
         });
 
@@ -330,7 +339,7 @@ export class MapComponent implements OnInit {
           if (name) {
             this.cantonesCache.set(name, {
               type: 'FeatureCollection',
-              features: [feature]
+              features: [feature],
             });
           }
         });
@@ -359,7 +368,7 @@ export class MapComponent implements OnInit {
     }
 
     console.log('🎨 Mostrando provincia de Guayas...');
-    
+
     // Crear máscara blanca/pastel para el resto del mundo
     this.createWorldMask();
 
@@ -369,8 +378,8 @@ export class MapComponent implements OnInit {
         weight: 3,
         opacity: 1,
         fillColor: '#e8f5e9',
-        fillOpacity: 0.7
-      }
+        fillOpacity: 0.7,
+      },
     }).addTo(this.map);
 
     const bounds = this.guayasLayer.getBounds();
@@ -385,16 +394,16 @@ export class MapComponent implements OnInit {
     if (!this.map || !this.guayasGeoJson) return;
 
     console.log('🎭 Creando máscara mundial blanca/pastel...');
-    
+
     const feature = this.guayasGeoJson.features[0];
-    
+
     // Rectángulo que cubre todo el mundo
     const worldBounds: L.LatLngExpression[] = [
       [-90, -180],
       [-90, 180],
       [90, 180],
       [90, -180],
-      [-90, -180]
+      [-90, -180],
     ];
 
     let holes: L.LatLngExpression[][] = [];
@@ -402,9 +411,7 @@ export class MapComponent implements OnInit {
     if (feature.geometry.type === 'Polygon') {
       holes = [this.convertCoordinates(feature.geometry.coordinates[0])];
     } else if (feature.geometry.type === 'MultiPolygon') {
-      holes = feature.geometry.coordinates.map((poly: any) =>
-        this.convertCoordinates(poly[0])
-      );
+      holes = feature.geometry.coordinates.map((poly: any) => this.convertCoordinates(poly[0]));
     }
 
     // Máscara blanca/pastel que cubre TODO el mundo menos Guayas
@@ -414,7 +421,7 @@ export class MapComponent implements OnInit {
       fillColor: '#f5f5f5',
       fillOpacity: 1,
       interactive: false,
-      pane: 'tilePane'
+      pane: 'tilePane',
     }).addTo(this.map);
 
     console.log('✓ Máscara mundial creada');
@@ -440,7 +447,7 @@ export class MapComponent implements OnInit {
         opacity: 0.9,
         fillColor: '#86efac',
         fillOpacity: 0.4,
-        dashArray: '3, 3'
+        dashArray: '3, 3',
       },
       onEachFeature: (feature: any, layer: L.Layer) => {
         const name = feature.properties?.name || 'Sin nombre';
@@ -456,7 +463,7 @@ export class MapComponent implements OnInit {
           (layer as any).setStyle({
             fillOpacity: 0.6,
             weight: 3.5,
-            color: '#16a34a'
+            color: '#16a34a',
           });
         });
 
@@ -465,11 +472,11 @@ export class MapComponent implements OnInit {
             (layer as any).setStyle({
               fillOpacity: 0.4,
               weight: 2.5,
-              color: '#22c55e'
+              color: '#22c55e',
             });
           }
         });
-      }
+      },
     }).addTo(this.map);
 
     console.log('✓ Capa de cantones creada y añadida al mapa');
@@ -538,8 +545,8 @@ export class MapComponent implements OnInit {
             weight: 4,
             opacity: 1,
             fillColor: '#e94560',
-            fillOpacity: 0.3
-          }
+            fillOpacity: 0.3,
+          },
         }).addTo(this.map!);
 
         const bounds = this.selectedCantonLayer.getBounds();
@@ -573,7 +580,7 @@ export class MapComponent implements OnInit {
       [-90, 180],
       [90, 180],
       [90, -180],
-      [-90, -180]
+      [-90, -180],
     ];
 
     const feature = cantonData.features[0];
@@ -584,22 +591,20 @@ export class MapComponent implements OnInit {
       holes = [this.convertCoordinates(feature.geometry.coordinates[0])];
     } else if (feature.geometry.type === 'MultiPolygon') {
       console.log('  📐 Tipo: MultiPolygon');
-      holes = feature.geometry.coordinates.map((poly: any) =>
-        this.convertCoordinates(poly[0])
-      );
+      holes = feature.geometry.coordinates.map((poly: any) => this.convertCoordinates(poly[0]));
     }
 
     this.maskLayer = L.polygon([worldBounds, ...holes], {
       color: 'transparent',
       fillColor: '#000',
-      fillOpacity: 0.6
+      fillOpacity: 0.6,
     }).addTo(this.map);
 
     console.log('✓ Máscara creada');
   }
 
   private convertCoordinates(coords: number[][]): L.LatLngExpression[] {
-    return coords.map(coord => [coord[1], coord[0]] as L.LatLngExpression);
+    return coords.map((coord) => [coord[1], coord[0]] as L.LatLngExpression);
   }
 
   private clearSelectionLayers(): void {
@@ -626,7 +631,7 @@ export class MapComponent implements OnInit {
         weight: 3,
         opacity: 1,
         fillColor: '#e94560',
-        fillOpacity: 0.1
+        fillOpacity: 0.1,
       });
     }
     if (this.cantonesLayer) {
@@ -635,7 +640,7 @@ export class MapComponent implements OnInit {
         weight: 2,
         opacity: 0.9,
         fillColor: '#10b981',
-        fillOpacity: 0.25
+        fillOpacity: 0.25,
       });
     }
 
